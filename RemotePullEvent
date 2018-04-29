@@ -1,0 +1,40 @@
+Steps to enable the Remote Powershell
+   1 Enable-PSRemoting -force
+   2 winrm quickconfig
+   3 Restart-Service WinRM
+   4 Get the restart Event 
+
+Put this information in the powershell notepad and save it in the remote server(File : MyRebootevent.ps1).
+
+Get-WinEvent -FilterHashtable @{logname='System'; id=1074}  | ForEach-Object {
+$rv = New-Object PSObject | Select-Object Date, User, Action, Process, Reason, ReasonCode, Comment
+$rv.Date = $_.TimeCreated
+$rv.User = $_.Properties[6].Value
+$rv.Process = $_.Properties[0].Value
+$rv.Action = $_.Properties[4].Value
+$rv.Reason = $_.Properties[2].Value
+$rv.ReasonCode = $_.Properties[3].Value
+$rv.Comment = $_.Properties[5].Value
+$rv
+} | Select-Object Date, Action, Reason, User
+
+Remote Execution from Second time onwards
+PS C:\WINDOWS\system32> Enter-PSSession -ComputerName 192.168.1.10 -Credential Adama\12270
+[192.168.1.10]: PS C:\Users\12270\Documents> cd ..
+[192.168.1.10]: PS C:\Users\12270> cd .\Desktop\
+[192.168.1.10]: PS C:\Users\12270\Desktop> .\MyRebootevent.ps1
+
+Date                          Action                        Reason                        User
+----                          ------                        ------                        ----
+6/27/2017 12:25:53 AM         shutdown                      Legacy API shutdown           NT AUTHORITY\SYSTEM
+4/1/2017 4:15:03 PM           power off                     Other (Unplanned)             ADAMA\Administrator
+4/1/2017 4:15:03 PM           shutdown                      Other (Unplanned)             ADAMA\Administrator
+4/1/2017 4:10:52 PM           restart                       No title for this reason c... ADC\Administrator
+4/1/2017 4:02:40 PM           restart                       No title for this reason c... WIN-GFI4QB5HCB0\Administrator
+4/1/2017 4:02:38 PM           restart                       Operating System: Reconfig... WIN-GFI4QB5HCB0\Administrator
+4/1/2017 2:23:14 PM           shutdown                      Legacy API shutdown           NT AUTHORITY\SYSTEM
+4/1/2017 9:48:01 AM           power off                     Other (Unplanned)             WIN-GFI4QB5HCB0\Administrator
+4/1/2017 9:48:01 AM           shutdown                      Other (Unplanned)             WIN-GFI4QB5HCB0\Administrator
+4/1/2017 9:45:54 AM           restart                       Other (Unplanned)             WIN-GFI4QB5HCB0\Administrator
+4/1/2017 9:45:54 AM           restart                       Other (Unplanned)             WIN-GFI4QB5HCB0\Administrator
+4/1/2017 9:38:02 PM           restart                       Operating System: Upgrade ... NT AUTHORITY\SYSTEM
